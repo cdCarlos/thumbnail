@@ -19,6 +19,8 @@
     "homepage": "https://github.com/cdCarlos/thumbnail#readme",
     "dependencies": {
         "express": "^4.17.1",
-        "sharp": "^0.22.1"
+        "sharp": "^0.22.1",
+        "swagger-jsdoc": "^3.3.0",
+        "swagger-ui-express": "^4.0.7"
     }
 }
