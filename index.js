@@ -1,6 +1,7 @@
 const express = require('express');
 const sharp = require('sharp');
 const app = express();
+const swagger = require('./swagger');
 const PORT = 8080;
 
 /**
@@ -68,6 +69,8 @@ app.get(/\/thumbnail\.(jpg|png)/, (req, res, next) => {
         [format]()
         .pipe(res);
 });
+
+swagger(app);
 
 app.listen(PORT, () => {
     console.log(`server listening at http://localhost:${PORT}`);
