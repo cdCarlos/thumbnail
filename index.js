@@ -21,7 +21,7 @@ app.get(/\/thumbnail\.(jpg|png)/, (req, res, next) => {
         }
     });
 
-    const thumbnail = new Buffer(
+    const thumbnail = Buffer.from(
         `<svg width="${width}" height="${height}">
             <rect
                 x="0" y="0"
