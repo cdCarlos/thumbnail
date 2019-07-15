@@ -51,7 +51,7 @@ app.get(/\/thumbnail\.(jpg|png)/, (req, res, next) => {
     );
 
     image
-        .overlayWith(thumbnail)
+        .composite([{ input: thumbnail }])
         [format]()
         .pipe(res);
 });
