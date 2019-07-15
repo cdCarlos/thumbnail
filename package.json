@@ -1,0 +1,26 @@
+{
+    "name": "thumbnail",
+    "version": "1.0.0",
+    "description": "Mini image processing microservice",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/cdCarlos/thumbnail.git"
+    },
+    "author": "Carlos Daniel",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/cdCarlos/thumbnail/issues"
+    },
+    "homepage": "https://github.com/cdCarlos/thumbnail#readme",
+    "dependencies": {
+        "express": "^4.17.1",
+        "sharp": "^0.22.1",
+        "swagger-jsdoc": "^3.3.0",
+        "swagger-ui-express": "^4.0.7"
+    }
+}
