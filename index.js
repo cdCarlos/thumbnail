@@ -3,6 +3,19 @@ const sharp = require('sharp');
 const app = express();
 const PORT = 8080;
 
+/**
+ * @swagger
+ *
+ * /thumbnail.png:
+ *   get:
+ *     description: Static thumbnail with predefined size of 300x200 px. Supported image formats are `PNG` and `JPG`, so, endpoint could be as follows `/thumbnail.{png|jpg}`.
+ *     produces:
+ *       - image/png
+ *       - image/jpeg
+ *     responses:
+ *       200:
+ *         description: PNG/JPG thumbnail image.
+ */
 app.get(/\/thumbnail\.(jpg|png)/, (req, res, next) => {
     let format = req.params[0] == 'png' ? 'png' : 'jpeg';
     let width = 300;
