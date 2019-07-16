@@ -9,23 +9,84 @@ const PORT = 8080;
  *
  * /thumbnail.png:
  *   get:
- *     description: Static thumbnail with predefined size of 300x200 px. Supported image formats are `PNG` and `JPG`, so, endpoint could be as follows `/thumbnail.{png|jpg}`.
+ *     description: Get static thumbnail with customizable properties. Supported image formats are `PNG` and `JPG`, so, endpoint could be as follows `/thumbnail.{png|jpg}`.
  *     produces:
  *       - image/png
  *       - image/jpeg
+ *     parameters:
+ *      - name: width
+ *        in: query
+ *        description: thumbnail width in pixels.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: integer
+ *          format: int32
+ *          default: 300
+ *      - name: height
+ *        in: query
+ *        description: thumbnail height in pixels.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: integer
+ *          format: int32
+ *          default: 200
+ *      - name: border
+ *        in: query
+ *        description: thumbnail border in pixels.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: integer
+ *          format: int32
+ *          default: 5
+ *      - name: bgcolor
+ *        in: query
+ *        description: background color in hex format.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: string
+ *          default: '#FCFCFC'
+ *      - name: fgcolor
+ *        in: query
+ *        description: foreground color in hex format.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: string
+ *          default: '#DDD'
+ *      - name: textcolor
+ *        in: query
+ *        description: thumbnail text color.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: string
+ *          default: '#AAA'
+ *      - name: textsize
+ *        in: query
+ *        description: thumbnail font size.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: integer
+ *          format: int32
+ *          default: 24
  *     responses:
  *       200:
  *         description: PNG/JPG thumbnail image.
  */
 app.get(/\/thumbnail\.(jpg|png)/, (req, res, next) => {
     let format = req.params[0] == 'png' ? 'png' : 'jpeg';
-    let width = 300;
-    let height = 200;
-    let border = 5;
-    let bgcolor = '#fcfcfc';
-    let fgcolor = '#ddd';
-    let textcolor = '#aaa';
-    let textsize = 24;
+    let width = +req.query.width || 300;
+    let height = +req.query.height || 200;
+    let border = +req.query.border || 5;
+    let bgcolor = req.query.bgcolor || '#fcfcfc';
+    let fgcolor = req.query.fgcolor || '#ddd';
+    let textcolor = req.query.textcolor || '#aaa';
+    let textsize = +req.query.textsize || 24;
     let image = sharp({
         create: {
             width: width,
