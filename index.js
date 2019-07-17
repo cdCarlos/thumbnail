@@ -125,6 +125,7 @@ app.get(/\/thumbnail\.(jpg|png)/, (req, res, next) => {
         </svg>`
     );
 
+    res.setHeader('Content-Type', 'image/' + format);
     image
         .composite([{ input: thumbnail }])
         [format]()
