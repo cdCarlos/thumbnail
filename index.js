@@ -41,6 +41,17 @@ app.post('/uploads/:image', bodyParser.raw({
     fd.on('close', () => res.send({ status: 'ok', size: len }));
     fd.on('error', err => res.status(500).send({ status: 'error', message: err }));
 });
+
+app.head('/uploads/:image', (req, res) => {
+    fs.access(
+        path.join(__dirname, UPLOADS_FOLDER, req.params.image),
+        fs.constants.R_OK,
+        (err) => {
+            res.status(err ? 404 : 200);
+            res.end();
+        }
+    );
+});
 /**
  * @swagger
  *
