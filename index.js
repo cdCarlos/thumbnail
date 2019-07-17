@@ -97,34 +97,35 @@ app.get(/\/thumbnail\.(jpg|png)/, (req, res, next) => {
     });
 
     const thumbnail = Buffer.from(
-        `<svg width="${width}" height="${height}">
+        `<svg width='${width}' height='${height}'>
             <rect
-                x="0" y="0"
-                width="${width}" height="${height}"
-                fill="${fgcolor}" />
+                x='0' y='0'
+                width='${width}' height='${height}'
+                fill='${fgcolor}' />
             <rect
-                x="${border}" y="${border}"
-                width="${width - border * 2}" height="${height - border * 2}"
-                fill="${bgcolor}" />
+                x='${border}' y='${border}'
+                width='${width - border * 2}' height='${height - border * 2}'
+                fill='${bgcolor}' />
             <line
-                x1="${border * 2}" y1="${border * 2}"
-                x2="${width - border * 2}" y2="${height - border * 2}"
-                stroke-width="${border}" stroke="${fgcolor}" />
+                x1='${border * 2}' y1='${border * 2}'
+                x2='${width - border * 2}' y2='${height - border * 2}'
+                stroke-width='${border}' stroke='${fgcolor}' />
             <line
-                x1="${width - border * 2}" y1="${border * 2}"
-                x2="${border * 2}" y2="${height - border * 2}"
-                stroke-width="${border}" stroke="${fgcolor}" />
+                x1='${width - border * 2}' y1='${border * 2}'
+                x2='${border * 2}' y2='${height - border * 2}'
+                stroke-width='${border}' stroke='${fgcolor}' />
             <rect
-                x="${border}" y="${(height - textsize) / 2}"
-                width="${width - border * 2}" height="${textsize}"
-                fill="${bgcolor}" />
+                x='${border}' y='${(height - textsize) / 2}'
+                width='${width - border * 2}' height='${textsize}'
+                fill='${bgcolor}' />
             <text
-                x="${width / 2}" y="${height / 2}" dy="8"
-                font-family="Helvetica" font-size="${textsize}"
-                fill="${textcolor}" text-anchor="middle">${width} x ${height}</text>
+                x='${width / 2}' y='${height / 2}' dy='8'
+                font-family='Helvetica' font-size='${textsize}'
+                fill='${textcolor}' text-anchor='middle'>${width} x ${height}</text>
         </svg>`
     );
 
+    res.setHeader('Content-Type', 'image/' + format);
     image
         .composite([{ input: thumbnail }])
         [format]()
