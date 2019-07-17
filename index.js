@@ -52,6 +52,34 @@ app.head('/uploads/:image', (req, res) => {
         }
     );
 });
+
+app.get('/uploads/:image', (req, res) => {
+    let ext = path.extname(req.params.image);
+
+    if (!ext.match(/^\.(png|jpg)$/)) {
+        return res.status(404).end()
+    }
+
+    let fd = fs.createReadStream(path.join(__dirname, UPLOADS_FOLDER, req.params.image));
+
+    fd.on('error', err => {
+        if (err.code == 'ENOENT') {
+            res.status(404);
+            if (req.accepts('html')) {
+                res.setHeader("Content-Type", "text/html");
+
+                res.write("<strong>Error:</strong> image not found");
+            }
+            return res.end()
+        }
+
+        res.status(500).end();
+    });
+    res.setHeader('Content-Type', 'image/' + ext.substr(1));
+
+    fd.pipe(res);
+});
+
 /**
  * @swagger
  *
@@ -176,7 +204,7 @@ app.get(/\/thumbnail\.(jpg|png)/, (req, res, next) => {
     res.setHeader('Content-Type', 'image/' + format);
     image
         .composite([{ input: thumbnail }])
-        [format]()
+    [format]()
         .pipe(res);
 });
 
