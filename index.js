@@ -1,8 +1,290 @@
 const express = require('express');
 const sharp = require('sharp');
+const bodyParser = require('body-parser');
+const path = require('path');
+const fs = require('fs');
 const app = express();
 const swagger = require('./swagger');
 const PORT = 8080;
+
+// Setup uploads folder
+const UPLOADS_FOLDER = 'uploads';
+if (!fs.existsSync(UPLOADS_FOLDER)) {
+    fs.mkdirSync(UPLOADS_FOLDER, (err, folder) => {
+        if (err) {
+            console.error(err);
+            return;
+        }
+        console.info('Uploads folder created: ', folder);
+    });
+}
+
+app.param('image', (req, res, next, image) => {
+    if (!image.match(/\.(png|jpg)$/i)) {
+        return res.status(req.method == 'POST' ? 403 : 404).send({ status: 'error', message: 'Unsupported image format' });
+    }
+
+    req.image = image;
+    req.localPath = path.join(__dirname, UPLOADS_FOLDER, req.image);
+
+    return next();
+});
+
+const download_image = (req, res) => {
+    fs.exists(req.localPath, exists => {
+
+        if (!exists) {
+            return res.status(404).send({ status: 'error', message: 'Image has not been uploaded yet' });
+        }
+        fs.access(req.localPath, fs.constants.R_OK, err => {
+            if (err) {
+                return res.status(404).end({ status: 'error', message: err });
+            }
+
+            let image = sharp(req.localPath);
+            let width = +req.query.width;
+            let height = +req.query.height;
+            let blur = +req.query.blur;
+            let sharpen = +req.query.sharpen;
+            let greyscale = req.query.greyscale == 'true';
+            let flip = req.query.flip == 'true';
+            let flop = req.query.flop == 'true';
+            let options = {};
+
+            if (width && height) {
+                options = { canvas: 'ignoreAspectRatio' }
+            }
+
+            if (width || height) {
+                image.resize(width || null, height || null, options);
+            }
+
+            if (blur) image.blur(blur);
+            if (sharpen) image.sharpen(sharpen);
+            if (greyscale) image.greyscale();
+            if (flip) image.flip();
+            if (flop) image.flop();
+
+            res.setHeader('Content-Type', `image/${path.extname(req.image).substr(1)}`)
+            image.pipe(res);
+        });
+    })
+};
+
+/**
+ * @swagger
+ *
+ * /uploads/{image}:
+ *   get:
+ *     description: Get image with customizable properties. Supported image formats are `PNG` and `JPG`, so, endpoint could be as follows `/your_image.{png|jpg}`.
+ *     produces:
+ *       - image/png
+ *       - image/jpeg
+ *     parameters:
+ *      - name: image
+ *        in: path
+ *        description: file name (including extension).
+ *        required: true
+ *        schema:
+ *          type: string
+ *      - name: width
+ *        in: query
+ *        description: in pixels.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: integer
+ *          format: int32
+ *      - name: height
+ *        in: query
+ *        description: in pixels.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: integer
+ *          format: int32
+ *      - name: blur
+ *        in: query
+ *        description: apply blur effect to the image.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: integer
+ *          format: int32
+ *      - name: sharpen
+ *        in: query
+ *        description: apply sharpen effect to the image.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: integer
+ *          format: int32
+ *      - name: flip
+ *        in: query
+ *        description: flip the image vertically.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: boolean
+ *      - name: flop
+ *        in: query
+ *        description: flip the image horizontally.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: boolean
+ *      - name: greyscale
+ *        in: query
+ *        description: apply to image grey scale colors only.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: boolean
+ *     responses:
+ *       200:
+ *         description: PNG/JPG image.
+ *       404:
+ *         description: Image has not been uploaded and is not available.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   description: Request status.
+ *                 message:
+ *                   type: object | string
+ *                   description: error message.
+ *               example:
+ *                 status: 'error'
+ *                 message: 'Image has not been uploaded yet'
+ */
+app.get('/uploads/:image', download_image);
+
+/**
+ * @swagger
+ *
+ * /uploads/{image}:
+ *   post:
+ *     description: Upload/Re-upload an image.
+ *     produces:
+ *       - application/json
+ *     consumes:
+ *       - multipart/form-data
+ *     parameters:
+ *      - name: image
+ *        in: path
+ *        description: image file name (including extension).
+ *        required: true
+ *        schema:
+ *          type: string
+ *      - in: body
+ *        description: the image data to upload.
+ *        required: true
+ *        schema:
+ *          type: file
+ *     responses:
+ *       200:
+ *         description: Image has been uploaded and available.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   description: Request status.
+ *                 size:
+ *                   type: integer
+ *                   format: int32
+ *                   description: Image size.
+ *               example:
+ *                 status: 'ok'
+ *                 message: 8287
+ *       403:
+ *         description: Internal error while uploading image.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   description: Request status.
+ *                 message:
+ *                   type: object
+ *                   format: int32
+ *                   description: Image size.
+ *               example:
+ *                 status: 'error'
+ *                 message: { exception: '..', path: '..'}
+ *       500:
+ *         description: Internal error while uploading image.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   description: Request status.
+ *                 message:
+ *                   type: object
+ *                   format: int32
+ *                   description: Image size.
+ *               example:
+ *                 status: 'error'
+ *                 message: { exception: '..', path: '..'}
+ */
+app.post('/uploads/:image', bodyParser.raw({
+    limit: '10mb',
+    type: 'image/*'
+}), (req, res) => {
+    let fd = fs.createWriteStream(req.localPath, {
+        flags: 'w+',
+        encoding: 'binary'
+    });
+
+    fd.write(req.body);
+    fd.end();
+
+    fd.on('close', () => res.send({ status: 'ok', size: req.body.length }));
+    fd.on('error', err => res.status(500).send({ status: 'error', message: err }));
+});
+
+/**
+ * @swagger
+ *
+ * /uploads/{image}:
+ *   head:
+ *     description: Verify image has been uploaded and exists.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *      - name: image
+ *        in: path
+ *        description: target image to verify if already exists.
+ *        required: true
+ *        schema:
+ *          type: string
+ *     responses:
+ *       200:
+ *         description: Image has been uploaded and available.
+ *       404:
+ *         description: Image has not been uploaded and is not available.
+ */
+app.head('/uploads/:image', (req, res) => {
+    fs.access(
+        req.localPath,
+        fs.constants.R_OK,
+        (err) => {
+            res.status(err ? 404 : 200);
+            res.end();
+        }
+    );
+});
+
 
 /**
  * @swagger
@@ -128,7 +410,7 @@ app.get(/\/thumbnail\.(jpg|png)/, (req, res, next) => {
     res.setHeader('Content-Type', 'image/' + format);
     image
         .composite([{ input: thumbnail }])
-        [format]()
+    [format]()
         .pipe(res);
 });
 
