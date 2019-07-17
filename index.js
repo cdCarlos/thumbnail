@@ -1,9 +1,21 @@
 const express = require('express');
 const sharp = require('sharp');
+const fs = require('fs');
 const app = express();
 const swagger = require('./swagger');
 const PORT = 8080;
 
+// Setup uploads folder
+const UPLOADS_FOLDER = 'uploads';
+if (!fs.existsSync(UPLOADS_FOLDER)) {
+    fs.mkdirSync(UPLOADS_FOLDER, (err, folder) => {
+        if (err) {
+            console.error(err);
+            return;
+        }
+        console.info('Uploads folder created: ', folder);
+    });
+}
 /**
  * @swagger
  *
