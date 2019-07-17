@@ -1,5 +1,7 @@
 const express = require('express');
 const sharp = require('sharp');
+const bodyParser = require('body-parser');
+const path = require('path');
 const fs = require('fs');
 const app = express();
 const swagger = require('./swagger');
@@ -16,6 +18,29 @@ if (!fs.existsSync(UPLOADS_FOLDER)) {
         console.info('Uploads folder created: ', folder);
     });
 }
+
+app.post('/uploads/:image', bodyParser.raw({
+    limit: '10mb',
+    type: 'image/*'
+}), (req, res) => {
+    let image = req.params.image.toLowerCase();
+
+    if (!image.match(/\.(png|jpg)$/)) {
+        return res.status(403).end();
+    }
+
+    let len = req.body.length;
+    let fd = fs.createWriteStream(path.join(__dirname, UPLOADS_FOLDER, image), {
+        flags: 'w+',
+        encoding: 'binary'
+    });
+
+    fd.write(req.body);
+    fd.end();
+
+    fd.on('close', () => res.send({ status: 'ok', size: len }));
+    fd.on('error', err => res.status(500).send({ status: 'error', message: err }));
+});
 /**
  * @swagger
  *
