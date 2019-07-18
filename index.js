@@ -19,7 +19,7 @@ if (!fs.existsSync(UPLOADS_FOLDER)) {
     });
 }
 
-app.param("image", (req, res, next, image) => {
+app.param('image', (req, res, next, image) => {
     if (!image.match(/\.(png|jpg)$/i)) {
         return res.status(req.method == 'POST' ? 403 : 404).end();
     }
