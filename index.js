@@ -87,6 +87,16 @@ const download_image = (req, res) => {
         });
     })
 };
+
+app.get('/uploads/:width(\\d+)x:height(\\d+)-:greyscale-:image', download_image);
+app.get('/uploads/:width(\\d+)x:height(\\d+)-:image', download_image);
+app.get('/uploads/_x:height(\\d+)-:greyscale-:image', download_image);
+app.get('/uploads/_x:height(\\d+)-:image', download_image);
+app.get('/uploads/:width(\\d+)x_-:greyscale-:image', download_image);
+app.get('/uploads/:width(\\d+)x_-:image', download_image);
+app.get('/uploads/:greyscale-:image', download_image);
+app.get('/uploads/:image', download_image);
+
 app.post('/uploads/:image', bodyParser.raw({
     limit: '10mb',
     type: 'image/*'
@@ -114,14 +124,6 @@ app.head('/uploads/:image', (req, res) => {
     );
 });
 
-app.get('/uploads/:image', (req, res) => {
-    let fd = fs.createReadStream(req.localPath);
-
-    fd.on('error', err => res.status(err.code == "ENOENT" ? 404 : 500).end());
-    res.setHeader('Content-Type', 'image/' + path.extname(req.image).substr(1));
-
-    fd.pipe(res);
-});
 
 /**
  * @swagger
