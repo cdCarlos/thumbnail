@@ -48,6 +48,13 @@ app.param('height', (req, res, next, height) => {
     return next();
 });
 
+app.param('greyscale', (req, res, next, greyscale) => {
+    if (greyscale != 'bw') return next('route');
+
+    req.greyscale = true;
+
+    return next();
+});
 app.post('/uploads/:image', bodyParser.raw({
     limit: '10mb',
     type: 'image/*'
