@@ -44,7 +44,11 @@ const download_image = (req, res) => {
             let image = sharp(req.localPath);
             let width = +req.query.width;
             let height = +req.query.height;
+            let blur = +req.query.blur;
+            let sharpen = +req.query.sharpen;
             let greyscale = req.query.greyscale == 'true';
+            let flip = req.query.flip == 'true';
+            let flop = req.query.flop == 'true';
             let options = {};
 
             if (width && height) {
@@ -55,9 +59,11 @@ const download_image = (req, res) => {
                 image.resize(width || null, height || null, options);
             }
 
-            if (greyscale) {
-                image.greyscale();
-            }
+            if (blur) image.blur(blur);
+            if (sharpen) image.sharpen(sharpen);
+            if (greyscale) image.greyscale();
+            if (flip) image.flip();
+            if (flop) image.flop();
 
             res.setHeader('Content-Type', `image/${path.extname(req.image).substr(1)}`)
             image.pipe(res);
