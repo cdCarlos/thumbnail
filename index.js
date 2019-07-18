@@ -55,6 +55,38 @@ app.param('greyscale', (req, res, next, greyscale) => {
 
     return next();
 });
+
+const download_image = (req, res) => {
+    fs.exists(req.localPath, exists => {
+
+        if (!exists) {
+            return res.status(404).send({ status: 'error', message: 'Image has not been uploaded yet' });
+        }
+        fs.access(req.localPath, fs.constants.R_OK, err => {
+            if (err) {
+                return res.status(404).end({ status: 'error', message: err });
+            }
+
+            let image = sharp(req.localPath);
+            let options = {};
+
+            if (req.width && req.height) {
+                options = { canvas: 'ignoreAspectRatio' }
+            }
+
+            if (req.width || req.height) {
+                image.resize(req.width, req.height, options);
+            }
+
+            if (req.greyscale) {
+                image.greyscale();
+            }
+
+            res.setHeader('Content-Type', `image/${path.extname(req.image).substr(1)}`)
+            image.pipe(res);
+        });
+    })
+};
 app.post('/uploads/:image', bodyParser.raw({
     limit: '10mb',
     type: 'image/*'
