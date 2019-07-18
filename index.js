@@ -30,32 +30,6 @@ app.param('image', (req, res, next, image) => {
     return next();
 });
 
-app.param('width', (req, res, next, width) => {
-    req.width = +width;
-
-    if (isNaN(req.width)) {
-        return next(new Exception('Image size must be in pixels'));
-    }
-    return next();
-});
-
-app.param('height', (req, res, next, height) => {
-    req.height = +height;
-
-    if (isNaN(req.height)) {
-        return next(new Exception('Image size must be in pixels'));
-    }
-    return next();
-});
-
-app.param('greyscale', (req, res, next, greyscale) => {
-    if (greyscale != 'bw') return next('route');
-
-    req.greyscale = true;
-
-    return next();
-});
-
 const download_image = (req, res) => {
     fs.exists(req.localPath, exists => {
 
@@ -68,17 +42,20 @@ const download_image = (req, res) => {
             }
 
             let image = sharp(req.localPath);
+            let width = +req.query.width;
+            let height = +req.query.height;
+            let greyscale = req.query.greyscale == 'true';
             let options = {};
 
-            if (req.width && req.height) {
+            if (width && height) {
                 options = { canvas: 'ignoreAspectRatio' }
             }
 
-            if (req.width || req.height) {
-                image.resize(req.width, req.height, options);
+            if (width || height) {
+                image.resize(width || null, height || null, options);
             }
 
-            if (req.greyscale) {
+            if (greyscale) {
                 image.greyscale();
             }
 
@@ -88,13 +65,6 @@ const download_image = (req, res) => {
     })
 };
 
-app.get('/uploads/:width(\\d+)x:height(\\d+)-:greyscale-:image', download_image);
-app.get('/uploads/:width(\\d+)x:height(\\d+)-:image', download_image);
-app.get('/uploads/_x:height(\\d+)-:greyscale-:image', download_image);
-app.get('/uploads/_x:height(\\d+)-:image', download_image);
-app.get('/uploads/:width(\\d+)x_-:greyscale-:image', download_image);
-app.get('/uploads/:width(\\d+)x_-:image', download_image);
-app.get('/uploads/:greyscale-:image', download_image);
 app.get('/uploads/:image', download_image);
 
 app.post('/uploads/:image', bodyParser.raw({
