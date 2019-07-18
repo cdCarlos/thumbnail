@@ -30,6 +30,24 @@ app.param('image', (req, res, next, image) => {
     return next();
 });
 
+app.param('width', (req, res, next, width) => {
+    req.width = +width;
+
+    if (isNaN(req.width)) {
+        return next(new Exception('Image size must be in pixels'));
+    }
+    return next();
+});
+
+app.param('height', (req, res, next, height) => {
+    req.height = +height;
+
+    if (isNaN(req.height)) {
+        return next(new Exception('Image size must be in pixels'));
+    }
+    return next();
+});
+
 app.post('/uploads/:image', bodyParser.raw({
     limit: '10mb',
     type: 'image/*'
