@@ -71,8 +71,172 @@ const download_image = (req, res) => {
     })
 };
 
+/**
+ * @swagger
+ *
+ * /uploads/{image}:
+ *   get:
+ *     description: Get image with customizable properties. Supported image formats are `PNG` and `JPG`, so, endpoint could be as follows `/your_image.{png|jpg}`.
+ *     produces:
+ *       - image/png
+ *       - image/jpeg
+ *     parameters:
+ *      - name: image
+ *        in: path
+ *        description: file name (including extension).
+ *        required: true
+ *        schema:
+ *          type: string
+ *      - name: width
+ *        in: query
+ *        description: in pixels.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: integer
+ *          format: int32
+ *      - name: height
+ *        in: query
+ *        description: in pixels.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: integer
+ *          format: int32
+ *      - name: blur
+ *        in: query
+ *        description: apply blur effect to the image.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: integer
+ *          format: int32
+ *      - name: sharpen
+ *        in: query
+ *        description: apply sharpen effect to the image.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: integer
+ *          format: int32
+ *      - name: flip
+ *        in: query
+ *        description: flip the image vertically.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: boolean
+ *      - name: flop
+ *        in: query
+ *        description: flip the image horizontally.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: boolean
+ *      - name: greyscale
+ *        in: query
+ *        description: apply to image grey scale colors only.
+ *        required: false
+ *        style: form
+ *        schema:
+ *          type: boolean
+ *     responses:
+ *       200:
+ *         description: PNG/JPG image.
+ *       404:
+ *         description: Image has not been uploaded and is not available.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   description: Request status.
+ *                 message:
+ *                   type: object | string
+ *                   description: error message.
+ *               example:
+ *                 status: 'error'
+ *                 message: 'Image has not been uploaded yet'
+ */
 app.get('/uploads/:image', download_image);
 
+/**
+ * @swagger
+ *
+ * /uploads/{image}:
+ *   post:
+ *     description: Upload/Re-upload an image.
+ *     produces:
+ *       - application/json
+ *     consumes:
+ *       - multipart/form-data
+ *     parameters:
+ *      - name: image
+ *        in: path
+ *        description: image file name (including extension).
+ *        required: true
+ *        schema:
+ *          type: string
+ *      - in: body
+ *        description: the image data to upload.
+ *        required: true
+ *        schema:
+ *          type: file
+ *     responses:
+ *       200:
+ *         description: Image has been uploaded and available.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   description: Request status.
+ *                 size:
+ *                   type: integer
+ *                   format: int32
+ *                   description: Image size.
+ *               example:
+ *                 status: 'ok'
+ *                 message: 8287
+ *       403:
+ *         description: Internal error while uploading image.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   description: Request status.
+ *                 message:
+ *                   type: object
+ *                   format: int32
+ *                   description: Image size.
+ *               example:
+ *                 status: 'error'
+ *                 message: { exception: '..', path: '..'}
+ *       500:
+ *         description: Internal error while uploading image.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   description: Request status.
+ *                 message:
+ *                   type: object
+ *                   format: int32
+ *                   description: Image size.
+ *               example:
+ *                 status: 'error'
+ *                 message: { exception: '..', path: '..'}
+ */
 app.post('/uploads/:image', bodyParser.raw({
     limit: '10mb',
     type: 'image/*'
@@ -89,6 +253,27 @@ app.post('/uploads/:image', bodyParser.raw({
     fd.on('error', err => res.status(500).send({ status: 'error', message: err }));
 });
 
+/**
+ * @swagger
+ *
+ * /uploads/{image}:
+ *   head:
+ *     description: Verify image has been uploaded and exists.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *      - name: image
+ *        in: path
+ *        description: target image to verify if already exists.
+ *        required: true
+ *        schema:
+ *          type: string
+ *     responses:
+ *       200:
+ *         description: Image has been uploaded and available.
+ *       404:
+ *         description: Image has not been uploaded and is not available.
+ */
 app.head('/uploads/:image', (req, res) => {
     fs.access(
         req.localPath,
