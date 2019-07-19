@@ -21,7 +21,7 @@ if (!fs.existsSync(UPLOADS_FOLDER)) {
 
 app.param('image', (req, res, next, image) => {
     if (!image.match(/\.(png|jpg)$/i)) {
-        return res.status(req.method == 'POST' ? 403 : 404).end();
+        return res.status(req.method == 'POST' ? 403 : 404).send({ status: 'error', message: 'Unsupported image format' });
     }
 
     req.image = image;
